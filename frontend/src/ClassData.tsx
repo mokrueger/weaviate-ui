@@ -31,12 +31,27 @@ export default function ({ pathname, propties }: any) {
   const [keyword, setKeyword] = useState("");
   const [certainty, setCertainty] = useState(defaultCertainty);
 
-  let columns = [];
+  let columns: any[] = [];
   columns.push({
     title: "Id",
     dataIndex: "index",
     ellipsis: true,
   });
+
+  if (keyword) {
+    columns.push(
+      {
+        title: "Certainty",
+        dataIndex: "certainty",
+        ellipsis: true,
+      },
+      {
+        title: "Distance",
+        dataIndex: "distance",
+        ellipsis: true,
+      }
+    );
+  }
 
   propties.forEach((proptie: any) => {
     columns.push({
@@ -86,6 +101,10 @@ export default function ({ pathname, propties }: any) {
 
             res["index"] = clz.uuid;
             res["rowId"] = clz.uuid;
+            if (keyword) {
+              res["certainty"] = clz.metadata?.certainty ?? "";
+              res["distance"] = clz.metadata?.distance ?? "";
+            }
 
             return res;
           });
