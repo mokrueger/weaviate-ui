@@ -4,10 +4,45 @@ import weaviate
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from loguru import logger
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 load_dotenv()
+
+class Settings(BaseSettings):
+    """Configuration loaded from environment variables prefixed with `WEAVIATE_`.
+
+    Examples:
+      WEAVIATE_HOST=localhost
+      WEAVIATE_PORT=8080
+      WEAVIATE_SECURE=false
+      WEAVIATE_GRPC_HOST=localhost
+      WEAVIATE_GRPC_PORT=50051
+      WEAVIATE_GRPC_SECURE=false
+      WEAVIATE_API_KEY=...
+      WEAVIATE_BEARER_TOKEN=...
+    """
+    # Minimal required
+    host: str
+    port: int
+    grpc_port: int
+
+    # Extra
+    grpc_host: str | None = None
+    secure: bool = False
+    grpc_secure: bool = False
+
+    # Authentication
+    api_key: str | None = None
+    bearer_token: str | None = None
+
+    model_config = SettingsConfigDict(
+        env_prefix="WEAVIATE_",
+        env_file=".env",
+        extra="ignore",
+    )
+
 
 app = FastAPI()
 
@@ -19,29 +54,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-WEAVIATE_HOST = os.getenv("WEAVIATE_HOST")
-WEAVIATE_PORT = int(os.getenv("WEAVIATE_PORT"))
-WEAVIATE_SECURE = bool(os.getenv("WEAVIATE_SECURE"))
-WEAVIATE_GRPC_HOST = os.getenv("WEAVIATE_GRPC_HOST")
-WEAVIATE_GRPC_PORT = int(os.getenv("WEAVIATE_GRPC_PORT"))
-WEAVIATE_GRPC_SECURE = bool(os.getenv("WEAVIATE_GRPC_SECURE"))
-WEAVIATE_API_KEY = os.getenv("WEAVIATE_API_KEY", None)
-WEAVIATE_BEARER_TOKEN = os.getenv("WEAVIATE_BEARER_TOKEN", None)
+settings = Settings()
 
 auth_credentials = None
 
-if WEAVIATE_API_KEY:
-    auth_credentials = weaviate.auth.Auth.api_key(WEAVIATE_API_KEY)
-elif WEAVIATE_BEARER_TOKEN:
-    auth_credentials = weaviate.auth.Auth.bearer_token(WEAVIATE_BEARER_TOKEN)
+if settings.api_key:
+    auth_credentials = weaviate.auth.Auth.api_key(settings.api_key)
+elif settings.bearer_token:
+    auth_credentials = weaviate.auth.Auth.bearer_token(settings.bearer_token)
+
+grpc_host = settings.grpc_host or settings.host
 
 client = weaviate.connect_to_custom(
-    http_host=WEAVIATE_HOST,
-    http_port=WEAVIATE_PORT,
-    http_secure=WEAVIATE_SECURE,
-    grpc_host=WEAVIATE_GRPC_HOST,
-    grpc_port=WEAVIATE_GRPC_PORT,
-    grpc_secure=WEAVIATE_GRPC_SECURE,
+    http_host=settings.host,
+    http_port=settings.port,
+    http_secure=settings.secure,
+    grpc_host=grpc_host,
+    grpc_port=settings.grpc_port,
+    grpc_secure=settings.grpc_secure,
     auth_credentials=auth_credentials,
 )
 
