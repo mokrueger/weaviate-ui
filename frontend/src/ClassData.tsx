@@ -15,6 +15,7 @@ function renderCellValue(value: any): React.ReactNode {
     return (
       <ReactJson
         src={value}
+        name={false}
         collapsed={0}
         enableClipboard={false}
         displayDataTypes={false}
