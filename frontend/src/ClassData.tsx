@@ -84,7 +84,7 @@ export default function ({ pathname, propties }: any) {
             });
 
             res["index"] = clz.uuid;
-            res["key"] = clz.uuid;
+            res["rowId"] = clz.uuid;
 
             return res;
           });
@@ -94,7 +94,7 @@ export default function ({ pathname, propties }: any) {
             total: clzData.count,
           };
         }}
-        rowKey="key"
+        rowKey="rowId"
         dateFormatter="string"
         toolbar={{
           title: "Collection",
