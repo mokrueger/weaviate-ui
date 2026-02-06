@@ -1,9 +1,9 @@
 # ---- Install node ----
 FROM node:18 as frontend
 WORKDIR /app
+COPY ./frontend/package.json ./frontend/yarn.lock ./
+RUN yarn install --frozen-lockfile
 COPY ./frontend .
-
-RUN yarn
 RUN yarn build
 
 # ---- Install poetry ----
@@ -16,7 +16,6 @@ COPY pyproject.toml poetry.lock ./
 
 RUN pip install poetry
 RUN poetry install --no-interaction --no-ansi
-
 COPY --from=frontend /app/dist /app/static
 COPY . .
 
