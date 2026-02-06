@@ -8,6 +8,21 @@ import {
   ProFormDatePicker,
   QueryFilter,
 } from "@ant-design/pro-components";
+import ReactJson from "react-json-view";
+
+function renderCellValue(value: any): React.ReactNode {
+  if (value !== null && value !== undefined && typeof value === "object") {
+    return (
+      <ReactJson
+        src={value}
+        collapsed={0}
+        enableClipboard={false}
+        displayDataTypes={false}
+      />
+    );
+  }
+  return value ?? "";
+}
 
 export default function ({ pathname, propties }: any) {
   let propertyNames = propties.map((x) => x.name);
@@ -27,8 +42,9 @@ export default function ({ pathname, propties }: any) {
       title: proptie.name,
       dataIndex: proptie.name,
       ellipsis: true,
-      renderText: (tags: string[] | string) => {
-        return Array.isArray(tags) ? tags.join(", ") : tags;
+      render: (_dom: any, record: any) => {
+        const value = record?.[proptie.name];
+        return renderCellValue(value);
       },
     });
   });
